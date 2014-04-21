@@ -1,0 +1,154 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Bat and Ball Game</title>
+	</head>
+	<body>
+		<h1>Bat and Ball Game</h1>
+		<canvas id="canvas" width="600" height="500" style="border: solid 1px #666666; box-shadow: 2px 2px 2px #999999;"></canvas>
+
+		<script>
+		/* Create the canvas. */
+			var canvas = document.getElementById("canvas");
+
+		/* Create a 2D context. */
+			var ctx = canvas.getContext("2d");
+
+
+
+		/*************************
+		 TASK ONE: LOAD ASSETS 
+		*************************/
+
+			/* Create the background image object. Once background.png is retrieved set bgReady to true. */
+
+				var bgReady = false;
+				var bgImage = new Image();
+				bgImage.src = "background.png";
+
+				bgImage.onload = function() {
+					bgReady = true;
+				};
+				
+
+
+			/* Create two objects i) ball image and ii) ball. Once ball.png is retrieved set ballReady to true. */
+
+				var ballReady =  false;
+				var ballImage = new Image();
+				ballImage.src = "ball.png";
+
+				ballImage.onload = function() {
+					ballReady = true;
+				};
+				
+				var ball = {
+					speed_x: 120,
+					speed_y: 160, 	// Speed as pixels per second.
+					pos_x: 0,
+					pos_y: 0		// Start location set as top left.
+				}
+
+
+			/* Create two objects i) bat image and ii) bat. Once bat.png is retrieved set batReady to true. */
+
+				var batReady =  false;
+				var batImage = new Image();
+				batImage.src = "bat.png";
+
+				batImage.onload = function() {
+					batReady = true;
+				};
+				
+				var bat = {
+					pos_x: (canvas.width / 2) - 30,
+					pos_y: canvas.height - 30
+				}
+
+
+
+			/* Listen for mouse position to relocate bat */
+
+				canvas.addEventListener("mousemove", move_bat, false);
+
+				function move_bat(event) {
+					bat.pos_x = (event.x - canvas.offsetLeft) - 30;
+				}
+
+
+		/*************************
+		 TASK TWO: UPDATE SCENARIO 
+		*************************/
+
+		/* seconds_elapsed_since_previous_frame is used to ensure the game objects move at the same speed regardless of how quickly the game loop runs. If one second has passed since the previous frame the speed (pixels per second) is multiplied by 1 and is thus unchanged. */
+
+			var update = function(seconds_elapsed_since_previous_frame) {
+				ball.pos_x += ball.speed_x * seconds_elapsed_since_previous_frame;
+				ball.pos_y += ball.speed_y * seconds_elapsed_since_previous_frame;
+
+
+				/* Check for ball collision with canvas boundary. Reverse direction if true. The && statement checks the ball direction */
+
+					if ( (ball.pos_x <= (0 + 15) && ball.speed_x < 0) || (ball.pos_x >= (canvas.width - 15) && ball.speed_x > 0) ) {
+						ball.speed_x = -ball.speed_x;	/* remember two negatives create a positive */
+					}
+
+					if (ball.pos_y <= (0 + 15) && ball.speed_y < 0) {
+						ball.speed_y = -ball.speed_y;
+					}
+
+
+				/* Check for ball collision with the bat. Use (h * h) = (a * a) + (b * b) to calculate distance between bat and ball centre points.
+				   Ball radius is 15px. Bat radius is 30px. Reverse direction if true */
+
+					var distance_between_bat_and_ball = Math.pow( (ball.pos_x - bat.pos_x), 2 ) + Math.pow( (ball.pos_y - bat.pos_y), 2);
+
+					if ( ball.speed_y > 0 && (distance_between_bat_and_ball < (45 * 45)) ) {
+						
+						ball.speed_y = -ball.speed_y;	/* reverse y direction */
+						ball.speed_y *= 1.2;
+						ball.speed_x *= 1.2; 	/* increase the speed by 20% each volley */
+					}
+
+			}; /* End of update function */
+
+
+
+		/*************************
+		 TASK THREE: REDRAW OBJECTS 
+		*************************/
+
+			var render = function() {
+				if (bgReady) ctx.drawImage(bgImage, 0, 0, 600, 500);
+				if (ballReady) ctx.drawImage(ballImage, ball.pos_x - 15, ball.pos_y - 15, 30, 30);
+				if (batReady) ctx.drawImage(batImage, bat.pos_x - 30, bat.pos_y - 30, 60, 60);
+			};
+
+
+
+		/*************************
+		 TASK FOUR: MAIN GAME LOOP 
+		*************************/
+
+			var main = function() {
+				var now = Date.now(); 		/* captures time stamp in milliseconds */
+				var delta = now - then;		/* calculates milliseconds since last frame */
+
+				update(delta / 1000); 		/* converts milliseconds to seconds */
+				render();
+
+				then = now;
+			};
+
+
+
+		/*************************
+		 TASK FIVE: KICK OFF MAIN
+		*************************/
+			
+				var then = Date.now();
+				setInterval(main, 1); 		/* execute main as fast as possible */
+
+		</script>
+	</body>
+</html>
